@@ -47,3 +47,43 @@ npm run dev -- -p 3100
 进度行（一次 session 加一行）：
 
 - `2026-05-18` · Session 1 · Phase 1 完成 · 五路由 + 持久 Canvas
+- `2026-05-18` · Session 2 · Phase 2 完成 · palette + sceneParams + projects + 资源脚本
+- `2026-05-18` · Session 3 · Phase 3 代码完成（**未本地验证**） · 走廊几何 + 4 shader + PostFX
+
+---
+
+## Session 3 · 2026-05-18 · Phase 3 HomeScene 走廊 + PostFX
+
+**目标**：把 `/` 路由从 Phase 1 的 magenta torus knot 占位重写成 AT 招牌走廊 hero，并接通 PostFX（Bloom / Vignette / ChromaticAberration；LensStreak 留 TODO）。
+
+**结果**：⚠️ 代码完整、commit `8bfa094` 已 push，**但未在本机起 dev server 验证**。验证 + 调参委托给独立 session，spec 见 `docs/session-3-codex-tasks.md`。
+
+**做了**：
+- 资源：curl Mozilla UA + Pexels Referer 抓 2 个 1080p H.264 clip 到 `public/videos/hero.mp4` (5.8MB) / `work.mp4` (7.7MB)。Mixkit 的 `assets.mixkit.co` S3 全部 403、Pexels 部分 ID 也 403，最终用 ID 2887463 / 1851190。视频被 .gitignore 屏蔽不进 commit
+- 4 shader 文件（components/scenes/home/shaders/*.ts，TS 模板字符串 + makeUniforms 工厂）：
+  - `homeAlley.ts` — wall scanline + fresnel + UV scroll + 远端 magenta 渐亮 + 法线/粗糙度 map 耦合
+  - `homeColumn.ts` — y 轴渐变 + 视向 rim + sin 脉冲
+  - `homeLogo.ts` — VideoTexture RGB-shift + magenta tint + 亮度提升 + emissive 混合
+  - `homeParticle.ts` — curl-noise-lite vert（3 相位 sin/cos）+ 3-stop frag + DPR 感知 PointSize
+- 6 子组件（components/scenes/home/*.tsx）：HomeEnvironment / HomeFloor / HomeColumns / HomeAlleyWalls / HomeBackScreen / HomeParticles
+- PostFX：`<EffectComposer frameBufferType=HalfFloat>` + Bloom（luminanceThreshold 0.6, mipmapBlur） + ChromaticAberration + Vignette，挂在 SceneRouter 后
+- WebGLProvider：`gl` prop 加 `toneMapping=ACESFilmicToneMapping` + `outputColorSpace=SRGBColorSpace`
+- HomeScene.tsx 改为薄壳 import 6 子组件 + ambientLight + 2 个 pointLight
+
+**遇到的问题 / 决策**：
+- Mixkit assets.mixkit.co 全 403（S3 AccessDenied），改用 Pexels CDN + 跑 6 个 URL 探测找到 200 的小文件
+- 本机起 dev server 验证时 Turbopack 首次编译 + R3F + MCP preview 把电脑卡爆（用户中断），同 Phase 1 末尾 OOM 模式
+- 决定不在当前 Opus session 完成本机验证 — 留 5h 配额给后续 session；写 Codex 任务包让独立 session 跑 npm run dev + 修编译错误 + 微调
+
+**未验证（留给 Codex / 下次 session）**：
+- npm run dev 是否能干净编译（shader uniform 类型、useTexture 对象签名、VideoTexture 跨域、ShaderMaterial 实例共享等都没验）
+- preview_screenshot 与 activetheory.net 真站对比构图/配色/Bloom 强度
+- console 无 `WebGLProgram: shader error` / `Material uniform 'X' not used`
+- Canvas 在 `/` ↔ `/work` 路由切换时持久（dataset.canvasRoot 同实例）
+- r3f-perf：FPS ≥ 55、drawcall < 80
+- 移动端粒子降到 300 后整体仍渲染
+
+**下次 session 进来怎么继续**：
+读 `docs/session-3-codex-tasks.md`，按 Task 1 → Task 2 → Task 3 顺序跑。Task 1 是「最小可见验证」（编译 + 截图 + console clean），多半能跑通；Task 2 是「修 bug」（如果 Task 1 报错的话）；Task 3 是「视觉调参」（对照 AT 真站）。所有改动汇成 `[P3-fix]` 单 commit 或多 commit 都可以。
+
+---
