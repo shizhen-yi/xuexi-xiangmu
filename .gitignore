@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/public/hdri/*
+!/public/hdri/.gitkeep
+/public/videos/*
+!/public/videos/.gitkeep
+/public/audio/*
+!/public/audio/.gitkeep
+/public/textures/*
+!/public/textures/.gitkeep

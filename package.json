@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "assets:fetch": "tsx scripts/fetch-assets.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -34,6 +35,7 @@
     "eslint-config-next": "16.2.6",
     "r3f-perf": "^7.2.3",
     "tailwindcss": "^4",
+    "tsx": "^4.22.1",
     "typescript": "^5"
   }
 }
