@@ -49,6 +49,7 @@ npm run dev -- -p 3100
 - `2026-05-18` · Session 1 · Phase 1 完成 · 五路由 + 持久 Canvas
 - `2026-05-18` · Session 2 · Phase 2 完成 · palette + sceneParams + projects + 资源脚本
 - `2026-05-18` · Session 3 · Phase 3 代码完成 · 走廊几何 + 4 shader + PostFX（tsc + build 验证通过，视觉调参留 Session 4）
+- `2026-05-18` · Session 4 · Phase 3 关闭 · LensStreak Effect 上线 + Phase 4 spec + baseline report（视觉调参留 Session 5，OOM 限制）
 
 ---
 
@@ -82,16 +83,57 @@ npm run dev -- -p 3100
 - ✅ React Server Components 边界（'use client' 标注）正确
 
 **运行时未验证（留 Session 4）**：
-- 运行时 GLSL 编译（`WebGLProgram: shader error` 之类，要起 dev 才能验）
-- preview_screenshot 对比 activetheory.net 真站
-- 路由切换 Canvas 持久（dataset.canvasRoot 同实例）
-- VideoTexture autoplay 真实表现（hero.mp4）
-- r3f-perf：FPS ≥ 55、drawcall < 80
-- 移动端粒子降到 300 后整体仍渲染
-- 视觉调参（Bloom 烈度、屏光面 alpha、地板反射强度、粒子数等 3-5 轮）
-- LensStreak Effect 实现（plan file 的 Phase 3 末尾收尾活）
+- ✅ 运行时 GLSL 编译（Session 4 webpack 模式起 dev 渲染走廊几何 + magenta 屏光 + 视频，无报错）
+- ⏸️ preview_screenshot 对比 activetheory.net 真站（拿到 baseline-ours，AT 真站没抓——留 Session 5）
+- ⏸️ 路由切换 Canvas 持久（Session 4 OOM 限制，没做多路由切换 sanity）
+- ✅ VideoTexture autoplay 真实表现（hero.mp4 渲染显示文字内容）
+- ⏸️ r3f-perf：FPS ≥ 55、drawcall < 80（OOM 限制，没开 r3f-perf）
+- ⏸️ 移动端粒子降到 300 后整体仍渲染（多视口 sanity 全留 Session 5）
+- ⏸️ 视觉调参（Bloom 烈度等 3-5 轮）（OOM 限制 + 时间预算，只跑了 baseline 看现状、调参留 Session 5）
+- ✅ LensStreak Effect 实现（Session 4 完成，commit `5e8d231`）
 
 **下次 session 进来怎么继续**：
-读 `docs/session-4-tuning-tasks.md`，按 Task 1（首屏基线对照）→ Task 2（参数调优 3-5 轮）→ Task 3（LensStreak Effect）→ Task 4（多视口 sanity）顺序跑。完成后 commit `[P3-close]` 收尾，进入 Phase 4。
+读 `docs/session-5-spec.md` 进 Phase 4（WorkScene + WorkDetail）。视觉调参另开一份 `docs/session-4-baseline-report.md` 已有「推荐第一轮」表格，Session 5 想插一段 Home tuning 也可以按那份起步。
+
+---
+
+## Session 4 · 2026-05-18 · Phase 3 关闭：LensStreak + Phase 4 spec + baseline report
+
+**目标**：原计划做完 baseline 双图 → 3-5 轮 Home 视觉调参 → LensStreak Effect → 多视口 sanity → 收口。
+
+**结果**：⚠️ **部分完成**。LensStreak Effect 实现 + 集成 + 编译 + 上线（commit `5e8d231`）、写完 Phase 4 spec、拿到一张 baseline 截图、写完 baseline-report。**视觉调参循环完全没跑**——OOM 风险 + 5h 配额 + 1h 时间预算让多轮 iterate 不现实。代码层 Phase 3 关闭，运行时调参挪到 Session 5。
+
+**做了**：
+- `components/fx/LensStreakEffect.ts` 新建：postprocessing 6.x `Effect` 子类 + `wrapEffect` 包装成 React 组件
+  - 13-tap 横向各向异性高斯模糊 + 软亮度阈值门控 + 径向 halo
+  - 默认 streak=#c2dcff、halo=#cceeff、intensity=0.6、threshold=0.7、stretch=0.02
+  - 用 postprocessing 自动注入的 `inputBuffer` sampler2D（不显式声明 uTexture，与 6.x 约定一致）
+- `components/fx/PostFX.tsx` 集成：`<LensStreak />` 放在 Bloom 之后、ChromaticAberration 之前
+- 父目录 `.claude/launch.json` 的 xuexi-xiangmu 条目加 `--webpack` flag（Turbopack 在本机 OOM）
+- 拿到 Home `/` 路由的一张 baseline 截图（preview_screenshot via webpack dev）
+- 写 `docs/session-4-baseline-report.md`：现状描述 + 6 条差异清单 + 4 条「推荐第一轮调参」给 Session 5
+- 写 `docs/session-5-spec.md`（280 行）：Phase 4 任务包，覆盖 WorkScene 玻璃方块网格 + voronoi hover 碎裂 + scroll dolly + WorkDetail 30k 粒子转场 + ScrollControls 详情滚动
+
+**遇到的问题 / 决策**：
+- **Turbopack OOM 重演**：preview_start 默认走 Turbopack，首次 R3F 编译把电脑卡死（Pages active 飙到 7GB）。**决策**：父目录 launch.json 加 `--webpack` flag，webpack 模式下首次编译 6.8s、Pages active 稳定在 2.6GB，HMR 工作（但本 session 没真正 HMR 一轮——一改 Bloom 内存就降到 free 22MB，立即 stop）。结论：webpack 模式**勉强能用但内存空间小**，OOM 仍在风险半径内。Session 5 进来仍要先关多余应用
+- **背景 Codex Agent 派不出去**：用户允许我把 LensStreak GLSL + Phase 4 spec 派给独立 branch 的 background agent。但 `Agent` 工具启动后台 agent 即返回 "You've hit your limit · resets 8:40pm"——Anthropic API 5h 配额限制，无法启动后台 agent。**决策**：自己两份都写，单文件 TS 模板字符串实现 LensStreak（跟项目 home shader 风格一致），不分拆 .glsl 文件
+- **postprocessing 6.x Effect base 集成路径**：原 spec（docs/session-4-tuning-tasks.md:101-148）建议手动 `<primitive object={effect}/>`，但 `@react-three/postprocessing` 3.0 提供 `wrapEffect` helper（参考 `Bloom.d.ts` / `Vignette.d.ts` 的实现路径），用 wrapEffect 更干净、类型推导更好。**用 wrapEffect 路径**
+- **视觉调参没真正跑**：试改 Bloom intensity 1.2→1.8 + threshold 0.6→0.45 后立刻发现内存 free 22MB（危险水平），stop dev + **回退改动**——理由：没视觉验证的 commit 不专业，让 baseline-report 的「推荐第一轮」做为 Session 5 的纯文本工单
+- **Session 4 spec 大改的部分**：原 `docs/session-4-tuning-tasks.md` 是 Session 3 末写给 Session 4 的，已完成的部分（LensStreak）算作落地，未完成的（3-5 轮调参 + 多视口 sanity + 路由切换 sanity）被推给 Session 5
+
+**编译已验证**：
+- ✅ `npx tsc --noEmit` clean（含 LensStreak 类型 + wrapEffect 泛型推导）
+- ✅ `npm run build` 3.8s clean，7 个静态页全生成
+- ✅ webpack dev 模式 R3F 渲染 / WebGL2 / Canvas 持久（dataset attribute 检查通过）
+
+**运行时未验证（留 Session 5）**：
+- 视觉调参循环（baseline-report 列了 4 条「推荐第一轮」起步）
+- LensStreak 横向冷蓝条纹**是否真在画面上出现**（屏光亮度可能 < `threshold=0.7`，需要先调高 Bloom 或降 streak threshold）
+- 多视口 sanity（1440 / 1920 / 768 / 375）
+- 路由切换 Canvas 持久 sanity（5 路由依次点击）
+- r3f-perf：FPS / drawcall
+
+**下次 session 进来怎么继续**：
+读 `docs/session-5-spec.md`，按 Task 1-5 走 Phase 4。OOM 教训已写入 spec 末「OOM 防范」节，**先关多余应用再 preview_start**。如想在 Phase 4 中间穿插一段 Home tuning，按 `docs/session-4-baseline-report.md` 的「推荐第一轮」表格做 1-2 轮（建议合并到 `[P5-...]` commit 流里，不开独立 phase）。
 
 ---
