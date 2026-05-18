@@ -2,17 +2,19 @@
 
 import { useEffect } from 'react';
 import Lenis from 'lenis';
+import { useStore } from '@/lib/store';
 
-/**
- * Initializes Lenis smooth scrolling once on mount. Phase 1: default settings.
- * Phase 4 will add scroll-progress publishing for the Work scene camera dolly.
- */
 export function LenisProvider() {
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.1,
       smoothWheel: true,
     });
+
+    const onScroll = ({ progress }: { progress: number }) => {
+      useStore.getState().setScrollProgress(progress);
+    };
+    lenis.on('scroll', onScroll);
 
     let raf = 0;
     const tick = (time: number) => {
@@ -23,6 +25,7 @@ export function LenisProvider() {
 
     return () => {
       cancelAnimationFrame(raf);
+      lenis.off('scroll', onScroll);
       lenis.destroy();
     };
   }, []);
