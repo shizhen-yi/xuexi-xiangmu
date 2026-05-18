@@ -48,7 +48,7 @@ npm run dev -- -p 3100
 
 - `2026-05-18` · Session 1 · Phase 1 完成 · 五路由 + 持久 Canvas
 - `2026-05-18` · Session 2 · Phase 2 完成 · palette + sceneParams + projects + 资源脚本
-- `2026-05-18` · Session 3 · Phase 3 代码完成（**未本地验证**） · 走廊几何 + 4 shader + PostFX
+- `2026-05-18` · Session 3 · Phase 3 代码完成 · 走廊几何 + 4 shader + PostFX（tsc + build 验证通过，视觉调参留 Session 4）
 
 ---
 
@@ -56,7 +56,7 @@ npm run dev -- -p 3100
 
 **目标**：把 `/` 路由从 Phase 1 的 magenta torus knot 占位重写成 AT 招牌走廊 hero，并接通 PostFX（Bloom / Vignette / ChromaticAberration；LensStreak 留 TODO）。
 
-**结果**：⚠️ 代码完整、commit `8bfa094` 已 push，**但未在本机起 dev server 验证**。验证 + 调参委托给独立 session，spec 见 `docs/session-3-codex-tasks.md`。
+**结果**：✅ 代码完整（commit `8bfa094`） + 编译验证通过（`npx tsc --noEmit` exit 0；`npm run build` 3.2s clean + 7 个静态页全生成）。视觉调参 / LensStreak / 路由切换 sanity 留给 Session 4，spec 见 `docs/session-4-tuning-tasks.md`。
 
 **做了**：
 - 资源：curl Mozilla UA + Pexels Referer 抓 2 个 1080p H.264 clip 到 `public/videos/hero.mp4` (5.8MB) / `work.mp4` (7.7MB)。Mixkit 的 `assets.mixkit.co` S3 全部 403、Pexels 部分 ID 也 403，最终用 ID 2887463 / 1851190。视频被 .gitignore 屏蔽不进 commit
@@ -72,18 +72,26 @@ npm run dev -- -p 3100
 
 **遇到的问题 / 决策**：
 - Mixkit assets.mixkit.co 全 403（S3 AccessDenied），改用 Pexels CDN + 跑 6 个 URL 探测找到 200 的小文件
-- 本机起 dev server 验证时 Turbopack 首次编译 + R3F + MCP preview 把电脑卡爆（用户中断），同 Phase 1 末尾 OOM 模式
-- 决定不在当前 Opus session 完成本机验证 — 留 5h 配额给后续 session；写 Codex 任务包让独立 session 跑 npm run dev + 修编译错误 + 微调
+- 起 dev server 验证时 Turbopack 首次编译 + R3F + MCP preview 把电脑卡爆（用户中断）
+- **判断失误纠正**：第一反应是把"验证 + 修 bug + 调参"全打包给 Codex，被用户拨正——`tsc --noEmit` 和 `next build` 只要 5-10s 自己干、不烧 5h 配额；视觉调参确实要持续观察反馈但应该是另一个 Claude session 不是 Codex（Codex 不善反复 iterate）。Codex 适合的是「输入输出可完整 spec、不依赖周围代码」的机械活
+- 实际验证路径：`npx tsc --noEmit` exit 0 + `npm run build` 3.2s clean → 集成胶水都装对了（drei MeshReflectorMaterial、useTexture 对象签名、VideoTexture SSR guard、ShaderMaterial 实例共享、@react-three/postprocessing 栈）
 
-**未验证（留给 Codex / 下次 session）**：
-- npm run dev 是否能干净编译（shader uniform 类型、useTexture 对象签名、VideoTexture 跨域、ShaderMaterial 实例共享等都没验）
-- preview_screenshot 与 activetheory.net 真站对比构图/配色/Bloom 强度
-- console 无 `WebGLProgram: shader error` / `Material uniform 'X' not used`
-- Canvas 在 `/` ↔ `/work` 路由切换时持久（dataset.canvasRoot 同实例）
+**编译已验证（Session 3 内做掉）**：
+- ✅ TypeScript strict 类型检查 clean
+- ✅ Turbopack production build 7 个静态页全生成
+- ✅ React Server Components 边界（'use client' 标注）正确
+
+**运行时未验证（留 Session 4）**：
+- 运行时 GLSL 编译（`WebGLProgram: shader error` 之类，要起 dev 才能验）
+- preview_screenshot 对比 activetheory.net 真站
+- 路由切换 Canvas 持久（dataset.canvasRoot 同实例）
+- VideoTexture autoplay 真实表现（hero.mp4）
 - r3f-perf：FPS ≥ 55、drawcall < 80
 - 移动端粒子降到 300 后整体仍渲染
+- 视觉调参（Bloom 烈度、屏光面 alpha、地板反射强度、粒子数等 3-5 轮）
+- LensStreak Effect 实现（plan file 的 Phase 3 末尾收尾活）
 
 **下次 session 进来怎么继续**：
-读 `docs/session-3-codex-tasks.md`，按 Task 1 → Task 2 → Task 3 顺序跑。Task 1 是「最小可见验证」（编译 + 截图 + console clean），多半能跑通；Task 2 是「修 bug」（如果 Task 1 报错的话）；Task 3 是「视觉调参」（对照 AT 真站）。所有改动汇成 `[P3-fix]` 单 commit 或多 commit 都可以。
+读 `docs/session-4-tuning-tasks.md`，按 Task 1（首屏基线对照）→ Task 2（参数调优 3-5 轮）→ Task 3（LensStreak Effect）→ Task 4（多视口 sanity）顺序跑。完成后 commit `[P3-close]` 收尾，进入 Phase 4。
 
 ---
