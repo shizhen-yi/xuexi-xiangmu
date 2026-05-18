@@ -2,8 +2,10 @@
 
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
+import { ACESFilmicToneMapping, SRGBColorSpace } from 'three';
 import { CameraRig } from '@/components/rig/CameraRig';
 import { CursorTracker } from '@/components/rig/CursorTracker';
+import { PostFX } from '@/components/fx/PostFX';
 import { SceneRouter } from './SceneRouter';
 import { sceneParams } from '@/lib/sceneParams';
 
@@ -24,6 +26,8 @@ export function WebGLProvider() {
             antialias: true,
             alpha: false,
             powerPreference: 'high-performance',
+            toneMapping: ACESFilmicToneMapping,
+            outputColorSpace: SRGBColorSpace,
           }}
           camera={{
             position: home.position,
@@ -37,6 +41,7 @@ export function WebGLProvider() {
           <Suspense fallback={null}>
             <SceneRouter />
           </Suspense>
+          <PostFX />
         </Canvas>
       </div>
     </>
