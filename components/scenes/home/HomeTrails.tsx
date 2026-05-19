@@ -13,7 +13,7 @@ import {
 } from 'three';
 import { palette } from '@/lib/palette';
 
-const TRAIL_COUNT = 5;
+const TRAIL_COUNT = 2;
 const POINTS_PER_TRAIL = 8;
 const TWO_PI = Math.PI * 2;
 
@@ -34,11 +34,11 @@ const fragmentShader = /* glsl */ `
   varying vec2 vUv;
 
   void main() {
-    float head = fract(vUv.x - uTime * 0.15 + uPhase);
+    float head = fract(vUv.x - uTime * 0.22 + uPhase);
     float intensity = smoothstep(0.0, 0.05, head) * smoothstep(0.15, 0.05, head);
 
-    vec3 baseColor = vec3(0.6) * 0.08;
-    vec3 glowColor = uTrailColor * intensity * 2.5;
+    vec3 baseColor = vec3(0.4) * 0.04;
+    vec3 glowColor = uTrailColor * intensity * 4.0;
     float baseAlpha = 0.08;
     float finalAlpha = max(baseAlpha, intensity * 0.9);
 
@@ -65,7 +65,7 @@ function makeTrail(index: number, trailColor: Color): Trail {
   const points: Vector3[] = [];
 
   for (let i = 0; i < POINTS_PER_TRAIL; i++) {
-    const radius = 1.5 + rand() * 1.5;
+    const radius = 2.2 + rand() * 2.3;
     const phi = startPhi + i * (Math.PI / 4 + (rand() - 0.5) * 0.16);
     const theta = Math.PI / 2 + (rand() - 0.5) * 1.0;
 
@@ -79,7 +79,7 @@ function makeTrail(index: number, trailColor: Color): Trail {
   }
 
   const curve = new CatmullRomCurve3(points, false, 'catmullrom', 0.5);
-  const geometry = new TubeGeometry(curve, 200, 0.012, 8, false);
+  const geometry = new TubeGeometry(curve, 320, 0.005, 8, false);
   const material = new ShaderMaterial({
     vertexShader,
     fragmentShader,
@@ -103,8 +103,11 @@ export function HomeTrails(): JSX.Element {
     () => Array.from({ length: TRAIL_COUNT }, (_, index) => makeTrail(index, trailColor)),
     [trailColor],
   );
+  const trailsRef = useRef<Trail[]>(trails);
 
   useEffect(() => {
+    trailsRef.current = trails;
+
     return () => {
       for (const trail of trails) {
         trail.geometry.dispose();
@@ -115,10 +118,11 @@ export function HomeTrails(): JSX.Element {
 
   useFrame((state, delta) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.05;
+      groupRef.current.rotation.y += delta * 0.025;
     }
 
-    for (const trail of trails) {
+    for (const trail of trailsRef.current) {
+      // eslint-disable-next-line react-hooks/immutability -- R3F frame loop mutates Three.js uniforms.
       trail.material.uniforms.uTime.value = state.clock.elapsedTime;
     }
   });

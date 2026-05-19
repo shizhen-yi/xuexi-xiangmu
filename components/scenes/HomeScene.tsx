@@ -10,12 +10,12 @@ import {
 } from './home/shaders/homeRing';
 import { HomeGoldParticles } from './home/HomeGoldParticles';
 import { HomeTrails } from './home/HomeTrails';
+import { HomeBackgroundStars } from './home/HomeBackgroundStars';
 import { useStore } from '@/lib/store';
 
 export function HomeScene() {
   const groupRef = useRef<Group>(null);
   const ringRef = useRef<Group>(null);
-  const matRef = useRef<ShaderMaterial>(null);
 
   const ringMaterial = useMemo(() => {
     const uniforms = makeRingUniforms();
@@ -23,7 +23,7 @@ export function HomeScene() {
       vertexShader: ringVert,
       fragmentShader: ringFrag,
       uniforms,
-      transparent: false,
+      transparent: true,
     });
   }, []);
 
@@ -32,6 +32,10 @@ export function HomeScene() {
     ringMaterial.uniforms.uTime.value = t;
 
     const { cursor, scrollProgress } = useStore.getState();
+
+    // Scroll-driven "explosion": ring fades + scales at progress > 0.5
+    const explodeProgress = Math.max(0, (scrollProgress - 0.5) * 2);
+    ringMaterial.uniforms.uOpacity.value = 1 - explodeProgress * 0.7;
 
     if (groupRef.current) {
       const cursorRotY = cursor.x * 0.15 + scrollProgress * Math.PI * 0.6;
@@ -50,18 +54,21 @@ export function HomeScene() {
       ringRef.current.rotation.y += delta * 0.25;
       ringRef.current.rotation.x = Math.sin(t * 0.3) * 0.12;
       ringRef.current.position.y = Math.sin(t * 0.4) * 0.15;
+      const ringExplodeScale = 1 + explodeProgress * 1.5;
+      ringRef.current.scale.setScalar(ringExplodeScale);
     }
   });
 
   return (
     <group ref={groupRef}>
       <ambientLight intensity={0.15} />
+      <HomeBackgroundStars count={25000} />
       <group ref={ringRef}>
         <mesh material={ringMaterial}>
           <torusKnotGeometry args={[1, 0.32, 256, 32, 2, 3]} />
         </mesh>
       </group>
-      <HomeGoldParticles count={8000} radius={3.5} />
+      <HomeGoldParticles count={20000} radius={5.5} />
       <HomeTrails />
     </group>
   );
