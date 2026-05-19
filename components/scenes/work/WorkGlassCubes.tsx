@@ -1,9 +1,13 @@
 'use client';
 
+import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import { BoxGeometry, EdgesGeometry, type Group } from 'three';
 import { palette } from '@/lib/palette';
 import { projects } from '@/data/projects';
+import { useStore } from '@/lib/store';
+
+const DOLLY_RANGE = 24;
 
 const CUBE_SIZE = 1.2;
 
@@ -55,6 +59,11 @@ function WorkGlassCube({
 
 export function WorkGlassCubes() {
   const dollyRef = useRef<Group>(null);
+
+  useFrame(() => {
+    if (!dollyRef.current) return;
+    dollyRef.current.position.z = useStore.getState().scrollProgress * DOLLY_RANGE;
+  });
 
   return (
     <group ref={dollyRef}>
