@@ -22,20 +22,20 @@ export function PostFX() {
     >
       <Bloom
         mipmapBlur
-        intensity={3.2}
-        luminanceThreshold={0.35}
-        luminanceSmoothing={0.3}
-        radius={0.92}
+        intensity={1.6}
+        luminanceThreshold={0.55}
+        luminanceSmoothing={0.25}
+        radius={0.88}
       />
       <LensStreak
         streakColor="#c2dcff"
         haloColor="#cceeff"
-        intensity={1.1}
-        threshold={0.55}
-        stretch={0.025}
+        intensity={0.7}
+        threshold={0.65}
+        stretch={0.02}
       />
-      <ChromaticAberration offset={new Vector2(0.0018, 0.0024)} radialModulation={false} modulationOffset={0} />
-      <Vignette eskil={false} offset={0.3} darkness={0.65} />
+      <ChromaticAberration offset={new Vector2(0.0012, 0.0016)} radialModulation={false} modulationOffset={0} />
+      <Vignette eskil={false} offset={0.32} darkness={0.6} />
     </EffectComposer>
   );
 }
