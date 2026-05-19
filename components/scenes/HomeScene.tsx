@@ -34,10 +34,16 @@ export function HomeScene() {
     const { cursor, scrollProgress } = useStore.getState();
 
     if (groupRef.current) {
-      groupRef.current.rotation.y += (cursor.x * 0.15 - groupRef.current.rotation.y) * 0.05;
-      groupRef.current.rotation.x += (-cursor.y * 0.1 - groupRef.current.rotation.x) * 0.05;
-      const targetZ = -scrollProgress * 4;
+      const cursorRotY = cursor.x * 0.15 + scrollProgress * Math.PI * 0.6;
+      const cursorRotX = -cursor.y * 0.1 + scrollProgress * 0.3;
+      groupRef.current.rotation.y += (cursorRotY - groupRef.current.rotation.y) * 0.05;
+      groupRef.current.rotation.x += (cursorRotX - groupRef.current.rotation.x) * 0.05;
+      const targetZ = -scrollProgress * 11;
       groupRef.current.position.z += (targetZ - groupRef.current.position.z) * 0.08;
+      const targetScale = 1 + scrollProgress * 0.6;
+      groupRef.current.scale.setScalar(
+        groupRef.current.scale.x + (targetScale - groupRef.current.scale.x) * 0.08,
+      );
     }
 
     if (ringRef.current) {
