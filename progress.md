@@ -250,3 +250,34 @@ npm run dev -- -p 3100
 读 `docs/session-9-spec.md`。
 
 ---
+
+## Session 9 · 2026-05-19 · Phase 6 收口：视觉 sanity + v0.1.0 tag
+
+**目标**：把积累 4 session 的运行时视觉全部验证一遍，修掉 bug，打 v0.1.0 tag。
+
+**结果**：✅ 完成。两个账号切换（前账号额度耗尽），恢复进度后完成所有 sanity + tag push。
+
+**做了**：
+- 账号切换后从 git log + memory + spec 文件恢复 session 上下文
+- Codex 两 worktree 完成并 merge（README v2 Phase 5/6 状态更新 + docs/postmortem.md）
+- 视觉 sanity（via Chrome MCP tool，绕过 MCP preview 的 GL scissor bug）：
+  - Stage 1 Ring ✓：iridescent torus + Bloom + LensStreak 效果
+  - Stage 2 Shower ✓：5k 粒子散落背景（动态落下感）
+  - Stage 3 Workshop ✓：线框穹顶 + 悬挂线 + 内部粒子，蓝调工业感
+  - Stage 4 Spiral ✓：多条弧形螺旋轨道 + CA 色散，效果极佳
+  - /work 玻璃方块 ✓：HDR + 透射材质 + CA 边线 + scroll dolly tunnel
+  - WorkDetail /work/signal-garden ✓：MDX 双语内容 + 元数据渲染
+  - LoadingMandala ✓：首次加载时圆形进度动画可见
+  - AudioToggle ✓：aria-label 状态切换正常（开启音效 → 关闭音效）
+- 发现 ⚠️ voronoi hover shader 偏暗（env map sampler2D 类型不匹配，非阻塞）
+- `git tag v0.1.0 -m "..."` + `git push origin v0.1.0`
+
+**已知遗留问题**（Phase 7 候选）：
+- voronoi hover shader 视觉偏暗（HDR sampler2D 兼容性）
+- cube click 粒子转场无法通过 MCP 自动化触发（DOM card 导航正常）
+- MobileFallback 无法通过 MCP 测试真实 375px 渲染（代码逻辑已验证）
+
+**下次 session 进来怎么继续**：
+Phase 7 可选：性能优化 / 替换虚构文案 / mobile WebGL / `/lab` 隐藏路由。
+
+---
