@@ -9,31 +9,43 @@ import { WorkScene } from '@/components/scenes/WorkScene';
 import { WorkDetailScene } from '@/components/scenes/WorkDetailScene';
 import { AboutScene } from '@/components/scenes/AboutScene';
 import { ContactScene } from '@/components/scenes/ContactScene';
+import { WorkDetailParticles } from '@/components/scenes/workDetail/WorkDetailParticles';
 
 /**
- * Maps the current pathname to one mounted scene. Phase-1 implementation is a
- * naive swap. Phase 4 will replace this with crossfade + WorkDetail particle
- * dissolve transitions driven by `transitionProgress` in the store.
+ * Maps the current pathname to one mounted scene. While a route transition
+ * is active (`store.transition !== null`), the dissolve particle overlay
+ * renders alongside the current scene — it survives the pathname swap so
+ * particles smoothly bridge Work → WorkDetail.
  */
 export function SceneRouter() {
   const pathname = usePathname();
   const setCurrentScene = useStore((s) => s.setCurrentScene);
   const currentScene = useStore((s) => s.currentScene);
+  const transition = useStore((s) => s.transition);
 
   useEffect(() => {
     setCurrentScene(pathToSceneId(pathname));
   }, [pathname, setCurrentScene]);
 
-  switch (currentScene) {
-    case 'home':
-      return <HomeScene />;
-    case 'work':
-      return <WorkScene />;
-    case 'workDetail':
-      return <WorkDetailScene />;
-    case 'about':
-      return <AboutScene />;
-    case 'contact':
-      return <ContactScene />;
-  }
+  const sceneNode = (() => {
+    switch (currentScene) {
+      case 'home':
+        return <HomeScene />;
+      case 'work':
+        return <WorkScene />;
+      case 'workDetail':
+        return <WorkDetailScene />;
+      case 'about':
+        return <AboutScene />;
+      case 'contact':
+        return <ContactScene />;
+    }
+  })();
+
+  return (
+    <>
+      {sceneNode}
+      {transition && <WorkDetailParticles />}
+    </>
+  );
 }

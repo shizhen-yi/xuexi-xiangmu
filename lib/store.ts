@@ -6,6 +6,8 @@ import type { SceneId } from './sceneParams';
 export type TransitionState = {
   from: SceneId;
   toSlug: string;
+  /** World-space center of the source object (e.g. clicked cube) — used as origin for the particle dissolve. */
+  fromWorldPos: readonly [number, number, number];
 };
 
 type State = {

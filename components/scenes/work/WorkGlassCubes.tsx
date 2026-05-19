@@ -2,8 +2,10 @@
 
 import { useEnvironment } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
+import gsap from 'gsap';
 import { damp } from 'maath/easing';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BoxGeometry, EdgesGeometry, ShaderMaterial, type Group, type Texture } from 'three';
 import { palette } from '@/lib/palette';
 import { projects } from '@/data/projects';
@@ -29,10 +31,12 @@ function WorkGlassCube({
   slug,
   position,
   envMap,
+  onActivate,
 }: {
   slug: string;
   position: readonly [number, number, number];
   envMap: Texture;
+  onActivate: (slug: string, basePos: readonly [number, number, number]) => void;
 }) {
   const boxGeom = useMemo(() => new BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE), []);
   const edgesGeom = useMemo(() => new EdgesGeometry(boxGeom, 15), [boxGeom]);
@@ -69,8 +73,16 @@ function WorkGlassCube({
         onPointerOver={(e) => {
           e.stopPropagation();
           setHovered(true);
+          document.body.style.cursor = 'pointer';
         }}
-        onPointerOut={() => setHovered(false)}
+        onPointerOut={() => {
+          setHovered(false);
+          document.body.style.cursor = '';
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onActivate(slug, position);
+        }}
       >
         {hovered ? (
           <primitive object={voronoiMaterial} attach="material" />
@@ -97,11 +109,45 @@ function WorkGlassCube({
 export function WorkGlassCubes() {
   const dollyRef = useRef<Group>(null);
   const envMap = useEnvironment({ files: '/hdri/studio_small_09_1k.hdr' });
+  const router = useRouter();
 
   useFrame(() => {
     if (!dollyRef.current) return;
     dollyRef.current.position.z = useStore.getState().scrollProgress * DOLLY_RANGE;
   });
+
+  const onActivate = useCallback(
+    (slug: string, basePos: readonly [number, number, number]) => {
+      const store = useStore.getState();
+      // Skip if a transition is already running.
+      if (store.transition) return;
+
+      // Snapshot the cube's world Z by combining its local offset with the
+      // live dolly translation so dissolve particles fly from where the
+      // cube actually sits at click time.
+      const dollyZ = store.scrollProgress * DOLLY_RANGE;
+      const fromWorldPos: readonly [number, number, number] = [
+        basePos[0],
+        basePos[1],
+        basePos[2] + dollyZ,
+      ];
+
+      store.setTransition({ from: 'work', toSlug: slug, fromWorldPos });
+      store.setTransitionProgress(0);
+
+      const tl = gsap.timeline({
+        onUpdate: () => useStore.getState().setTransitionProgress(tl.progress()),
+        onComplete: () => {
+          useStore.getState().setTransition(null);
+          useStore.getState().setTransitionProgress(1);
+        },
+      });
+      tl.to({}, { duration: 0.6, ease: 'power2.in' });
+      tl.call(() => router.push(`/work/${slug}`));
+      tl.to({}, { duration: 0.6, ease: 'power2.out' });
+    },
+    [router],
+  );
 
   return (
     <group ref={dollyRef}>
@@ -113,6 +159,7 @@ export function WorkGlassCubes() {
             slug={project.slug}
             position={pos}
             envMap={envMap as Texture}
+            onActivate={onActivate}
           />
         );
       })}
