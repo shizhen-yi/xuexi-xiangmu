@@ -4,13 +4,9 @@ import { useEffect, useState } from 'react';
 export function MobileFallback() {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const check = () => {
-      const widthMobile = window.matchMedia('(max-width: 767px)').matches;
-      const coarse = window.matchMedia('(pointer: coarse)').matches;
-      setIsMobile(widthMobile || coarse);
-    };
-    check();
     const mq = window.matchMedia('(max-width: 767px)');
+    const check = () => setIsMobile(mq.matches);
+    check();
     mq.addEventListener('change', check);
     return () => mq.removeEventListener('change', check);
   }, []);

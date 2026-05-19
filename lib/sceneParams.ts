@@ -36,12 +36,12 @@ export type SceneId = 'home' | 'work' | 'workDetail' | 'about' | 'contact';
 
 export const sceneParams: Readonly<Record<SceneId, SceneParams>> = {
   home: {
-    position: [0, 2, 40],
-    lookAt: [0, 4.59, 0],
-    fov: 30,
-    lerpSpeed: 0.1,
-    wobbleStrength: 0.1,
-    moveXY: [0, 0],
+    position: [0, 0, 7],
+    lookAt: [0, 0, 0],
+    fov: 38,
+    lerpSpeed: 0.08,
+    wobbleStrength: 0.05,
+    moveXY: [0.3, 0.2],
     groupPos: [0, 0, 0],
     lerpSpeed2: 1,
     rotation: [0, 0, 0],

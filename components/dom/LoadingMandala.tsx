@@ -77,8 +77,13 @@ function clamp01(value: number): number {
 export function LoadingMandala(): JSX.Element | null {
   const progress = useStore((s) => s.loadProgress);
   const [done, setDone] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const layers = useMemo(buildMandalaLayers, []);
   const displayProgress = clamp01(progress);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (progress < 1) return;
@@ -108,6 +113,7 @@ export function LoadingMandala(): JSX.Element | null {
   }, []);
 
   if (done) return null;
+  if (!mounted) return null;
 
   return (
     <div

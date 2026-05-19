@@ -1,53 +1,62 @@
 'use client';
 
-import { Suspense } from 'react';
-import { HomeAlleyWalls } from './home/HomeAlleyWalls';
-import { HomeBackScreen } from './home/HomeBackScreen';
-import { HomeColumns } from './home/HomeColumns';
-import { HomeEnvironment } from './home/HomeEnvironment';
-import { HomeFloor } from './home/HomeFloor';
-import { HomeParticles } from './home/HomeParticles';
-import { hex } from '@/lib/palette';
+import { useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { Group, ShaderMaterial } from 'three';
+import {
+  vertexShader as ringVert,
+  fragmentShader as ringFrag,
+  makeUniforms as makeRingUniforms,
+} from './home/shaders/homeRing';
+import { HomeGoldParticles } from './home/HomeGoldParticles';
+import { HomeTrails } from './home/HomeTrails';
+import { useStore } from '@/lib/store';
 
-/**
- * Home corridor hero scene (Phase 3): two side walls + 6 columns + reflective
- * floor + back video screen + emissive screen light + drifting particle dust,
- * lit by an HDRI environment, a point light at the screen, and a soft front
- * cyan rim. Camera params come from sceneParams.home; PostFX (Bloom / CA /
- * Vignette) is mounted globally inside WebGLProvider.
- */
 export function HomeScene() {
+  const groupRef = useRef<Group>(null);
+  const ringRef = useRef<Group>(null);
+  const matRef = useRef<ShaderMaterial>(null);
+
+  const ringMaterial = useMemo(() => {
+    const uniforms = makeRingUniforms();
+    return new ShaderMaterial({
+      vertexShader: ringVert,
+      fragmentShader: ringFrag,
+      uniforms,
+      transparent: false,
+    });
+  }, []);
+
+  useFrame((state, delta) => {
+    const t = state.clock.elapsedTime;
+    ringMaterial.uniforms.uTime.value = t;
+
+    const { cursor, scrollProgress } = useStore.getState();
+
+    if (groupRef.current) {
+      groupRef.current.rotation.y += (cursor.x * 0.15 - groupRef.current.rotation.y) * 0.05;
+      groupRef.current.rotation.x += (-cursor.y * 0.1 - groupRef.current.rotation.x) * 0.05;
+      const targetZ = -scrollProgress * 4;
+      groupRef.current.position.z += (targetZ - groupRef.current.position.z) * 0.08;
+    }
+
+    if (ringRef.current) {
+      ringRef.current.rotation.y += delta * 0.25;
+      ringRef.current.rotation.x = Math.sin(t * 0.3) * 0.12;
+      ringRef.current.position.y = Math.sin(t * 0.4) * 0.15;
+    }
+  });
+
   return (
-    <group>
-      <Suspense fallback={null}>
-        <HomeEnvironment />
-      </Suspense>
-
-      <ambientLight intensity={0.18} />
-      <pointLight
-        position={[0, 6, -28]}
-        intensity={28}
-        color={hex('home.screen')}
-        distance={28}
-        decay={2}
-      />
-      <pointLight
-        position={[0, 7, 6]}
-        intensity={6}
-        color={hex('home.floorGlow')}
-        distance={22}
-        decay={2}
-      />
-
-      <Suspense fallback={null}>
-        <HomeAlleyWalls />
-      </Suspense>
-      <HomeColumns />
-      <HomeFloor />
-      <Suspense fallback={null}>
-        <HomeBackScreen />
-      </Suspense>
-      <HomeParticles />
+    <group ref={groupRef}>
+      <ambientLight intensity={0.15} />
+      <group ref={ringRef}>
+        <mesh material={ringMaterial}>
+          <torusKnotGeometry args={[1, 0.32, 256, 32, 2, 3]} />
+        </mesh>
+      </group>
+      <HomeGoldParticles count={8000} radius={3.5} />
+      <HomeTrails />
     </group>
   );
 }

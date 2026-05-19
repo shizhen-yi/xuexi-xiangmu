@@ -4,6 +4,10 @@ import './globals.css';
 import { WebGLProvider } from '@/components/webgl/WebGLProvider';
 import { LenisProvider } from '@/components/dom/LenisProvider';
 import { Nav } from '@/components/dom/Nav';
+import { AudioToggle } from '@/components/dom/AudioToggle';
+import { MobileFallback } from '@/components/dom/MobileFallback';
+import { CustomCursor } from '@/components/dom/CustomCursor';
+import { LoadingMandala } from '@/components/dom/LoadingMandala';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -26,9 +30,13 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
+        <LoadingMandala />
+        <CustomCursor />
+        <MobileFallback />
         <LenisProvider />
         <WebGLProvider />
         <Nav />
+        <AudioToggle />
         <main className="dom-layer">{children}</main>
       </body>
     </html>
