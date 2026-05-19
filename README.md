@@ -21,20 +21,20 @@ This is a WebGL learning project that rebuilds an Active Theory-style experience
 | 2 | Done / 已完成 | Palette, scene parameters, project data, cursor/camera rig, asset tooling. / AT 配色、场景参数、项目数据、光标与相机 rig、资源脚本。 |
 | 3 | Code done / 代码完成 | Home corridor, reflective floor, video back screen, particles, Bloom/CA/Vignette/LensStreak. / Home 走廊、反射地板、视频屏、粒子和后处理栈。 |
 | 4 | Code done, runtime visual QA pending / 代码完成，运行时视觉待验 | Work glass cube grid, voronoi hover, scroll dolly, WorkDetail hero, 30k particle dissolve transition. / Work 玻璃方块、hover 碎裂、滚动 dolly、详情页 hero 和 30k 粒子转场。 |
-| 5 | Planned / 计划中 | About, Contact, full navigation, audio toggle, mobile fallback. / About、Contact、完整导航、音频开关和移动端 fallback。 |
-| 6 | Planned / 计划中 | Loader, performance pass, final visual QA, release polish. / Loader、性能优化、最终视觉验收和发布收口。 |
+| 5 | Done / 已完成 | AboutScene (SDF logo + wireframe lab + team), ContactScene (particles + bilingual form), hamburger menu (GSAP slide-out), AudioToggle (Howler ambient), MobileFallback poster, bilingual README. / AboutScene（SDF logo、线框实验室、团队）、ContactScene（粒子和双语表单）、汉堡菜单（GSAP 滑出）、AudioToggle（Howler 环境音）、MobileFallback 海报和双语 README。 |
+| 6 | In progress / 进行中 | HomeScene rebuilt as a 4-stage scroll narrative (ring → shower → workshop → spiral), LoadingMandala, multi-viewport sanity in progress, v0.1 tag pending. / HomeScene 重建为 4-stage 滚动叙事（ring → shower → workshop → spiral）、LoadingMandala、多视口 sanity 进行中，v0.1 tag 待发布。 |
 
 ## Implemented Shaders / 已实现 Shader
 
 | Shader | Source | Purpose 用途 |
 |---|---|---|
-| HomeAlleyShader | `components/scenes/home/shaders/homeAlley.ts` | Corridor wall material with scanlines, fresnel rim, roughness/normal texture coupling, cursor tint, and distant magenta glow. / 走廊墙面材质：扫描线、菲涅尔边缘、粗糙度与法线贴图耦合、光标染色和远端品红辉光。 |
-| HomeColumnShader | `components/scenes/home/shaders/homeColumn.ts` | Vertical column gradient with camera-facing rim light and slow emissive pulse. / 柱体渐变、视角边缘光和缓慢发光脉冲。 |
-| HomeLogoShader | `components/scenes/home/shaders/homeLogo.ts` | VideoTexture screen shader with RGB jitter, magenta tint, luminance lift, and bloom-ready emissive mix. / 视频屏 shader：RGB 抖动、品红染色、亮度提升和适配 Bloom 的发光混合。 |
+| HomeRingShader | `components/scenes/home/shaders/homeRing.ts` | Iridescent torus ring for Home stage 1, with chromatic fresnel and rotating shimmer. / Home 第 1 段的虹彩环形 torus，带色散菲涅尔和旋转闪烁。 |
 | HomeParticleShader | `components/scenes/home/shaders/homeParticle.ts` | DPR-aware point particles with lightweight curl-like motion, cursor drift, depth sizing, and three-color gradient. / DPR 感知点粒子：轻量 curl 动态、光标漂移、深度缩放和三段颜色渐变。 |
 | WorkBackgroundShader | `components/scenes/work/shaders/workBackground.ts` | Work scene backing plane with dark vertical gradient and slow procedural noise. / Work 场景背板：暗色垂直渐变和慢速程序噪声。 |
 | WorkGlassCubeShader | `components/scenes/work/shaders/workGlassCube.ts` | Hover material for glass cubes using 3D voronoi normal displacement, equirect environment sampling, fresnel, and RGB split. / 玻璃方块 hover 材质：3D voronoi 法线位移、环境贴图采样、菲涅尔和 RGB 分离。 |
 | WorkDetailDissolveShader | `components/scenes/workDetail/shaders/dissolve.ts` | Route transition particles that lerp from cube surface samples to the detail hero plane with curl disturbance and fade-out. / 路由转场粒子：从方块表面采样插值到详情页 hero 平面，带 curl 扰动和淡出。 |
+| AboutLogoShader | `components/scenes/about/shaders/aboutLogo.ts` | SDF Active Theory-style logo with chromatic fresnel and shader-driven glow. / SDF Active Theory 风格 logo，带色散菲涅尔和 shader 发光。 |
+| AboutLabLogoShader | `components/scenes/about/shaders/aboutLabLogo.ts` | Wireframe lab-logo pulse with floating drift and cyan/magenta energy. / 线框实验室 logo 脉冲，带漂浮偏移和青色/品红能量感。 |
 
 ## Run / 运行
 
