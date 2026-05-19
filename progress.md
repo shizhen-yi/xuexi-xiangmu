@@ -137,3 +137,58 @@ npm run dev -- -p 3100
 读 `docs/session-5-spec.md`，按 Task 1-5 走 Phase 4。OOM 教训已写入 spec 末「OOM 防范」节，**先关多余应用再 preview_start**。如想在 Phase 4 中间穿插一段 Home tuning，按 `docs/session-4-baseline-report.md` 的「推荐第一轮」表格做 1-2 轮（建议合并到 `[P5-...]` commit 流里，不开独立 phase）。
 
 ---
+
+进度行（追加）：
+
+- `2026-05-19` · Session 5 · Phase 4 完成 · WorkScene 网格 + voronoi hover + scroll dolly + 30k 粒子转场 + WorkDetail 详情页 + 4 MDX 文案（Codex 并行 3 worktree）
+
+---
+
+## Session 5 · 2026-05-19 · Phase 4：Work + WorkDetail + 粒子转场
+
+**目标**：Phase 4 五个 task —— WorkScene 玻璃方块网格 + hover 碎裂 + scroll dolly + WorkDetail 30k 粒子碎化转场 + 详情页布局 + hero video。预算 90min 硬上限。
+
+**结果**：✅ **代码层 5 个 task 全部完成 + commit + push**（`a14dcef` HEAD），tsc clean + build clean。**视觉验证仅 Task 1 通过截图**（5 cube magenta 边线深度排开 + 玻璃透射 + PostFX chromatic split 可见），Task 2-5 的运行时视觉因 preview 工具的 viewport/screenshot 怪行为没拍到清晰图，**视觉验证留 Session 6 开局**。
+
+**做了**：
+- **Codex 并行 3 worktree**（用户起的）：voronoi GLSL + dissolve GLSL + 4 个 MDX 文案。三条 branch 都干净 push，main 三次 merge --no-edit 零冲突。Codex 写完 ~30min，与 Claude T1 时间重叠，几乎零等待
+- **Task 0 Foundation**（[P4-store] `a13cf93`）：store.ts 加 `scrollProgress: number` + `transition: { from, toSlug, fromWorldPos } | null` + setters；LenisProvider 加 `lenis.on('scroll', ({ progress }) => setScrollProgress(progress))` —— 之前 Phase 1 的 Lenis 完全封闭、不发布到 store
+- **Task 1 WorkScene 基础**（[P4-work-grid] `20a3243`）：5 个 GlassCube（按 data/projects 5 个 slug）、MeshPhysicalMaterial（transmission 1, ior 1.4, attenuationColor #b4e0e3, clearcoat 1）、EdgesGeometry 磁紫边线、子组件 WorkEnvironment（HDRI + fog 15/45 + 2 个点光） / WorkBackground（4-sin noise 渐变 plane）/ WorkParticles（300d/120m 复用 homeParticle shader）。WorkScene.tsx 改成薄壳
+- **Task 3 scroll dolly**（[P4-work-dolly] `7fe8ae4`）：WorkGlassCubes 外层 group ref，useFrame 写 `group.position.z = scrollProgress * 24`。app/work/page.tsx 改 min-h-[300vh] + 真实 projects 数据替换 4 占位卡 + pointer-events 隔层（section 外层 none + 内容 auto）
+- **Task 2 hover voronoi**（[P4-work-hover] `583f8c5`）：包 Codex GLSL 进 `shaders/workGlassCube.ts` TS 模板 + makeUniforms 工厂；每 cube 用 `useState(hovered)` + `onPointerOver/Out`，hover=true 时切到 ShaderMaterial，uHoverAmount 用 `maath/easing damp(factor 0.15)` 0→1 平滑。drei `useEnvironment` 喂 equirect HDR 给 uEnvMap。**修一个 Phase 1 遗留 bug**：`.canvas-layer` 全局 `pointer-events: none` 阻断 cube 命中——WorkScene 加 `useCanvasPointerEvents` hook，mount 时改为 auto，unmount 还原
+- **Task 4 粒子转场**（[P4-work-transition] `32e7ec6`）：SceneRouter 加 `<>{sceneNode}{transition && <WorkDetailParticles />}</>` overlay（跨路由切换不卸载）；WorkDetailParticles 30k 桌面 / 10k 移动，自写 BoxGeometry surface 采样（6 面 × 5k 点）替代 MeshSurfaceSampler 外部依赖，aFromPos 加 transition.fromWorldPos 偏移，aToPos 是 [0, 1, -2] ±2.0 plane 采点。WorkGlassCubes 加 onClick 派 GSAP timeline（0.6s in → router.push → 0.6s out）写 transitionProgress 到 store
+- **Task 5 详情页**（[P4-work-detail] `a14dcef`）：WorkDetailScene 用本地 `/videos/work.mp4`（per-project remote pexels URL 受 CORS 阻 VideoTexture）做 hero plane at [0, 1, -2]（与 WorkDetailParticles HERO_PLANE_CENTER 对齐）+ 3 个 sub-cube；app/work/[slug]/page.tsx 服务端 fs/promises 读 mdx + 简易正则 frontmatter 解析 + 微型 markdown 渲染（## / - / paragraph）避免 `@next/mdx` 依赖。底部"Next case"链 getNextProject
+
+**遇到的问题 / 决策**：
+- **palette 字段名 spec 写错**：spec 引用 `palette.bgPurple` / `palette.glassTeal` 都不存在，实际是 `palette.bg.homeRoom` (#161616) / `palette.glass.cubeFresnel` (#b4e0e3)。Phase 4 spec 是 Session 4 末写的、当时没核对最新 palette 结构。本 session plan 文档里已记录这点
+- **Lenis subscribe 假设错位**：spec 假设 "Lenis 已在 layout.tsx Phase 1 接通，只需新加订阅"。实际 Phase 1 LenisProvider 完全封闭、用 useEffect 内部 raf tick 但**不发布到任何外部**。本 session 在 Task 0 内补了
+- **SceneRouter transition 槽假设错位**：spec 说 SceneRouter "已在 Phase 1 骨架预留转场逻辑位置"。实际只有 switch case 没任何 transition 痕迹（只有一行 `// Phase 4 will replace this` 注释）。本 session 加了 overlay 分支
+- **`.canvas-layer` 全局 pointer-events: none**：Phase 1 globals.css 默认让 Canvas 透传所有事件给 DOM。Phase 4 cube 要 hover/click 必须能命中。WorkScene 加 hook 临时翻 auto
+- **preview viewport / screenshot 怪行为**：Task 2 verify 时 preview_resize 后 R3F 没跟着 resize，screenshot 显示一小块场景压在左上角剩余画布全黑。试过 reload / dispatch 'resize' 事件都没修复。耗了 ~10min 没诊出根因。**决策**：T2/T4/T5 跳过视觉 verify、靠 tsc + build + 代码 review 兜底，留 Session 6 开局补
+- **Codex 委托大成功**：3 个独立 worktree、~30min 出活、merge 0 冲突。Codex GLSL 严格按 spec 公式实现，dissolve.frag 只有 15 行、voronoi.vert 含完整 IQ 风格 hash3 + 27 邻居循环。MDX 中文文案高质量、无 AI 味、AT 风格。**单 session 主线 90min + 并行 30min = 总产出比纯 Claude 单线程多约 30%**
+- **Per-project hero video CORS**：data/projects.ts 的 heroVideo.mp4 是 pexels 远程 URL，VideoTexture 跨域受限。**决策**：detail 页统一用本地 /videos/work.mp4 做通用 hero。Phase 5 / 6 如要走真实 per-project hero 需要本地下载 5 个 mp4
+
+**OOM 走势**：
+- 开局：Pages free 213MB（警戒，比 Session 4 开局 1GB 紧）
+- T1 完成后 preview_screenshot：60MB（危险）→ 立即 preview_stop → 回 1.5GB
+- T2 build 后：422MB（警戒）→ 短 preview verify 没视觉收益 → stop → 回 1.35GB
+- T4 / T5 build 时：1.1GB → 1.18GB → 始终在安全区
+- **本 session 没有真的 OOM 崩溃**，但内存压力始终高，preview 多开就是危险半径
+
+**编译已验证**：
+- ✅ `npx tsc --noEmit` clean（5 个 task 每个 commit 前都跑过）
+- ✅ `npm run build` clean，7 个静态页 + /work/[slug] 动态路由
+- ✅ webpack dev 启动 + /work 路由的 Canvas + WebGL2 + 1425×900 drawing buffer（Task 1 verify 通过）
+
+**运行时未验证（留 Session 6 开局 10min sanity）**：
+- Task 2 hover voronoi 视觉（理论上 cube hover 起碎裂 + RGB-split）
+- Task 3 dolly 滚动（理论上 cube 阵 scroll * 24 朝相机）
+- Task 4 转场（点 cube → 30k 粒子从 cube 面发射 → 路由切换 → 收束到 hero plane → 淡出）
+- Task 5 hero 视频播放 + DOM 文案 + MDX 内容渲染
+- 多视口 sanity（1440 / 768）
+- r3f-perf FPS（≥ 55 目标） / drawcall（< 80 目标）
+
+**下次 session 进来怎么继续**：
+读 `docs/session-6-spec.md` —— Phase 5 主题（About + Contact + 完整 Nav + Audio + 移动端 fallback + GitHub README）。**Session 6 开局第一件事**：跑 10min 视觉 sanity 把 Session 5 推迟的 Task 2-5 视觉过一遍（保存 docs/screenshots/p4-task-{2,3,4a,4b,5}.jpg），有 bug 一条 `[P4-fix-N]` commit 修。然后进 Phase 5。
+
+---
