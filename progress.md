@@ -192,3 +192,61 @@ npm run dev -- -p 3100
 读 `docs/session-6-spec.md` —— Phase 5 主题（About + Contact + 完整 Nav + Audio + 移动端 fallback + GitHub README）。**Session 6 开局第一件事**：跑 10min 视觉 sanity 把 Session 5 推迟的 Task 2-5 视觉过一遍（保存 docs/screenshots/p4-task-{2,3,4a,4b,5}.jpg），有 bug 一条 `[P4-fix-N]` commit 修。然后进 Phase 5。
 
 ---
+
+进度行（追加）：
+
+- `2026-05-19` · Session 6 · Phase 5 完成 · About+Contact+Nav+Audio+MobileFallback+README（Codex 并行：team-data / about-logo / lab-logo / readme-bilingual）
+- `2026-05-19` · Session 7/8 · Phase 6 开始 · HomeScene 重建 4-stage 叙事（ring/shower/workshop/spiral）+ Codex 并行 5 worktree
+
+---
+
+## Session 6 · 2026-05-19 · Phase 5 完成
+
+**目标**：完成 About + Contact + Nav 汉堡菜单 + Audio toggle + 移动端 fallback + 双语 README。
+
+**结果**：✅ Phase 5 6 个 task 全部完成 + commit + push。HEAD `028a90b`。
+
+**做了**：
+- `[P5-about]` AboutScene — AT SDF logo + wireframe lab + team DOM（Codex：about-logo-shader / about-team-data / lab-logo-shader）
+- `[P5-contact]` ContactScene — 稀疏粒子 + 中英双语表单
+- `[P5-nav]` 汉堡按钮 + GSAP 右侧滑出全屏菜单，路由变化自动关，5 路由 canvas 持久
+- Audio：Howler ambient loop（Codex：ambient-audio-script，ambient.ogg 生成）
+- Mobile fallback：Codex codex/mobile-fallback 实现（poster 全屏 + "请在桌面访问"）
+- README：Codex codex/readme-bilingual（中英双语 + shader 清单 + Phase log）
+
+**遗留**：Phase 4（Session 5）的 Task 2-5 运行时视觉（hover voronoi / scroll dolly / 粒子转场 / hero video）始终未截图确认——留 Session 9 sanity check。
+
+**下次 session 进来怎么继续**：
+读 `docs/session-7-spec.md`（现为 `session-9-spec.md`）。
+
+---
+
+## Session 7/8 · 2026-05-19 · Phase 6 开始：HomeScene 4-stage 重建
+
+**目标**：把 HomeScene 从走廊架构升级为 AT 风格 4 段滚动叙事（ring → shower → workshop → spiral），并行 Codex 出 stage 组件。
+
+**结果**：✅ 4 个 stage 全部 commit + merge，整合进 4-stage scroll narrative。未写 spec 文档（违反惯例，直接开干）。
+
+**做了**：
+- Codex 并行 5 worktree：loading-mandala / nav-pill-rewrite / home-trails / home-gold-particles / home-ring-shader
+- `[P6-home-rebuild]` AT-style ring + 粒子 + trails + pill nav（`14f3c46`）
+- `[P6-home-scroll]` 4-section scroll narrative + scroll-driven camera（`1da9a98`）
+- `[P6-home-density]` trails v2 + stars + particles 20k + ring v2 + PostFX boost（`cfcf7c2`）
+- `[P6-fix]` PostFX 强度回调 bloom 3.2→1.6（`99679ae`）
+- Codex 并行 3 stage：HomeStageShower + HomeStageWorkshop（初版）+ HomeStageSpiral
+- `[P6-home-stages]` 4-stage 整合（`922906e`）
+- `[P6-workshop-v2]` Workshop 穹顶版重写（`08a9de3`）
+
+**已清理**：7 个已 merge codex worktree 全部 `git worktree remove`。
+
+**遗留 / 未验证**：
+- 4 个 stage 的运行时视觉从未截图（Session 9 开局 sanity）
+- Phase 4 Task 2-5 运行时视觉（累积遗留，Session 9 一并扫）
+- Loading screen（loading-mandala）是否集成进 app/layout.tsx
+- Audio toggle 是否真正工作（ambient.ogg 是否在 public/audio/）
+- Mobile fallback 是否接入 layout.tsx
+
+**下次 session 进来怎么继续**：
+读 `docs/session-9-spec.md`。
+
+---
