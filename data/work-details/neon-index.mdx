@@ -1,0 +1,20 @@
+---
+title: 霓虹索引
+client: Vanta Relay
+year: 2024
+role: "Creative Direction · WebGL · Sound Design"
+---
+
+## 项目背景
+
+Vanta Relay 拥有一套快速更新的城市观察样本，却缺少能承载速度感的表达。项目不追求地图式说明，而是把街区、噪声和时间切片压缩成一个持续闪烁的索引界面。
+
+## 解法
+
+界面以 WebGL 网格作为底层坐标，样本被映射成可变亮度的霓虹片段。Three.js 处理空间深度和镜头位移，fragment shader 生成扫描、拖影和电流断点，GSAP 控制索引展开，让信息在秩序与失真之间保持张力。
+
+## 亮点
+
+- 城市样本转译为霓虹坐标
+- 扫描 shader 制造电流拖影
+- 索引切换保留残像节奏
